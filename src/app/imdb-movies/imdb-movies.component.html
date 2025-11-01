@@ -1,0 +1,7 @@
+<div class="table-wrapper">
+    <app-data-table [columns]="columns"></app-data-table>
+    <div *ngIf="isLoadingState" class="overlay">
+      <mat-spinner></mat-spinner>
+    </div>
+  </div>
+  

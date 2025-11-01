@@ -1,0 +1,62 @@
+
+<input type="text" [formControl]="searchInput" placeholder="Search Movie.."  />
+
+<table>
+  <thead>
+    <tr>
+      <th *ngFor="let column of columnVisibilty; let i = index">
+        <input type="checkbox" [checked]="_columnVisibility[column.key]" (change)="toggleVisibility(column.key)">
+        {{ column.label }} &nbsp;
+        <input type="text" [formControl]="getFormControl(i)" style="width: 100px;" placeholder="Filter...">
+        <ng-container *ngIf="sortColumn$ | async as sortColumn">
+          <ng-container *ngIf="sortDirection$ | async as sortDirection">
+          <button (click)="toggleSort(column.key)">
+            <span *ngIf="sortColumn === column.key && sortDirection === 'asc'">▲</span>
+            <span *ngIf="sortColumn === column.key && sortDirection === 'desc'">▼</span>
+            <span *ngIf="sortColumn !== column.key">↕</span>
+          </button>
+        </ng-container> 
+        </ng-container>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngIf="(combinedData$ | async)  as data">
+     <tr *ngFor="let item of data; trackBy:trackByFn">
+      <td *ngFor="let column of columns">
+        <ng-container *ngIf="column.key === 'Poster'; else textCell">
+          <img
+            [src]="item[column.key]"
+            (error)="onImgError($event)"
+            loading="lazy"
+            width="100"
+            height="100"
+            alt="Poster"
+          />
+        </ng-container>
+  
+        <ng-template #textCell>
+        <span (click)="viewDetail(item['imdbID'])"> {{ item[column.key] }}</span>
+        </ng-template>   
+        </td>
+      </tr>
+    </ng-container>
+  <ng-container *ngIf="(combinedData$ | async) as data">
+    <tr *ngIf="data.length === 0"><td [attr.colspan]="columnVisibilty.length" style="text-align: center;">No data available.</td></tr>
+  </ng-container>
+  </tbody>
+</table>
+<div class="pagination-container">
+  <ng-container *ngIf="(currentPage$ | async) ?? 1 as currentPage">
+    <button (click)="previousPage(currentPage)" [disabled]="currentPage === 1">Previous</button>
+  </ng-container>
+  <ng-container *ngIf="pages$ | async as pages">
+    <button *ngFor="let page of pages; let i=index" (click)="changePage(page)">  {{ page }}</button>
+  </ng-container>
+  <ng-container *ngIf="(currentPage$ | async) ?? 1 as currentPage">
+    <ng-container *ngIf="(totalPages$ | async) ?? 1 as totalPages">
+      <button (click)="nextPage(currentPage, totalPages)" [disabled]="currentPage >= totalPages">Next</button>
+    </ng-container>
+  </ng-container>
+  <button (click)="resetFilters()">Reset Filters</button>
+</div>

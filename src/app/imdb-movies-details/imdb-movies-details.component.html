@@ -1,0 +1,24 @@
+<div class="movie-detail-wrapper" *ngIf="!isLoading; else loading">
+    <div class="poster">
+      <img [src]="movie.Poster" (error)="onImageError($event)" alt="Poster" />
+    </div>
+    <div class="details">
+      <h1>{{ movie.Title }} ({{ movie.Year }})</h1>
+      <p><strong>Genre:</strong> {{ movie.Genre   }}</p>
+      <p><strong>Director:</strong> {{ movie.Director }}</p>
+      <p><strong>Writer:</strong> {{ movie.Writer }}</p>
+      <p><strong>Actors:</strong> {{ movie.Actors  }}</p>
+      <p><strong>Plot:</strong> {{ movie.Plot }}</p>
+      <p><strong>IMDB Rating:</strong> {{ movie.imdbRating }}</p>
+      <p><strong>Runtime:</strong> {{ movie.Runtime }}</p>
+      <p><strong>Language:</strong> {{ movie.Language }}</p>
+      <p><strong>Awards:</strong> {{ movie.Awards }}</p>
+    </div>
+  </div>
+  
+  <ng-template #loading>
+    <div class="spinner-container">
+      <mat-spinner></mat-spinner>
+    </div>
+  </ng-template>
+  
