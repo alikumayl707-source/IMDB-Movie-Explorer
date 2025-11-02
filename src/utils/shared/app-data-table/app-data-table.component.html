@@ -23,7 +23,7 @@
   <tbody>
     <ng-container *ngIf="(combinedData$ | async)  as data">
      <tr *ngFor="let item of data; trackBy:trackByFn">
-      <td *ngFor="let column of columns">
+      <td *ngFor="let column of columnVisibilty">
         <ng-container *ngIf="column.key === 'Poster'; else textCell">
           <img
             [src]="item[column.key]"

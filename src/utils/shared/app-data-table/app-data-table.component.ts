@@ -14,13 +14,10 @@ import {
   Observable,
   Subject,
   takeUntil,
-  tap,
 } from 'rxjs';
 import { Store } from '@ngrx/store';
 import {
-  loadMovies,
   setColumns,
-  setPageSize,
 } from '../../../store/actions/datatable.actions';
 import { logger } from '../../utilities/logger';
 import { DataTableNgrxService } from '../../utilities/datatable.service';
@@ -48,25 +45,18 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
 
   
   //Encapsulate Definition of the columns array
-  private _columns: Array<{ key: keyof T; label: string; sortable?: boolean }> =
-    [];
+  private _columns: Array<{ key: keyof T; label: string; sortable?: boolean }> =[];
 
-  //Encapsulate pageSize data member of the Data table component
-  private _pageSize: number = 0;
 
-  //Encapsulate the columnVisibilty data member that contains property and its type
+  //Encapsulate the columnVisibilty that contains key of property and it's visibility state
   _columnVisibility!: Record<keyof T, boolean>;
 
-  //Input setter property will set the pageSize into the table by taking from the parent component
-  @Input() set pageSize(value: number) {
-    // Check if input setter value from the parent component is equal to its encapsualted pageSize property
-    if (this._pageSize !== value) {
-      //Initialize setter value that comes from parent component into the encapsulated poperty of this class
-      this._pageSize = value;
-      //update setter value that comes from parent component into the ngrx action
-      this.store.dispatch(setPageSize({ pageSize: value }));
-    }
-  }
+  //declare formArray object named as columnfilters
+  columnFilters!: FormArray;
+
+  //declare formControl object named as searchInput
+  @Input()
+  searchInput: FormControl = new FormControl();
 
   //Input setter property will set the columns definition into the table by taking from the parent component
   @Input() set columns(
@@ -113,12 +103,7 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
     //This will return the encapsulated _columns array that was come from the parent component
     return this._columns;
   }
-  //declare formArray object named as columnfilters
-  columnFilters!: FormArray;
-
-  //declare formControl object named as searchInput
-  @Input()
-  searchInput: FormControl = new FormControl();
+  
 
   //Declaring the objects of an observables
   combinedData$: Observable<any> = new Observable<any>();
@@ -130,18 +115,19 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
   sortColumn$: Observable<any> = new Observable<any>();
   sortDirection$!: Observable<'asc' | 'desc'>;
 
-  searchObs$ = new Subject<string>();
+  // searchObs$ = new Subject<string>();
   destroy$ = new Subject<void>();
 
   expandedItems = new Set<number | string>();
-
+  //viewModels$! : Observable<DatatableViewModel<T>>
   constructor(
     private dataTableNgrxService: DataTableNgrxService<T>,
     private store: Store<DataTableState<T>>,
     private router : Router
   ) {}
   ngOnInit(): void {
-    //Initializing observables with the ngrx selectors through fascade pattern
+
+    // Initializing observables with the ngrx selectors through fascade pattern
     this.combinedData$ = this.dataTableNgrxService.combinedData$.pipe(
       takeUntil(this.destroy$)
     );
@@ -166,17 +152,10 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
     // Subscribe formControl values changes obserbvale and update the reducer
     // through dispatching the ngrx action by the latest emission via some delay
     this.searchInput.valueChanges
-      .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+      .pipe(debounceTime(800), distinctUntilChanged(), takeUntil(this.destroy$))
       .subscribe((value:string) => {
-        this.store.dispatch(loadMovies({
-          page: 1,
-          pageSize: this._pageSize,
-          search: value,
-          filters: this.columnFilters.value,
-          sortColumn: '', // last sort
-          sortDirection: 'asc'
-        }));
-          });
+       this.dataTableNgrxService.updateDatatableParameter({search:value})
+      })
   }
   getFormControl(index: number): FormControl {
     //Creating form controls inside columnfilters form array till the lenght of the columns which passed by parent component
@@ -198,8 +177,8 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
     // for updating the column wise filter.
     this.columnFilters.valueChanges
       .pipe(
-        tap((val) => console.log('Filter form values', val)),
-        debounceTime(300),
+        debounceTime(800),
+        distinctUntilChanged(),
         takeUntil(this.destroy$)
       )
       .subscribe(() => this.updateFilters());
@@ -217,30 +196,15 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
       {} as Record<string, string>
     );
     //this will update the ngrx action with that key value pair object
-    this.dataTableNgrxService.updateColumnFilter({
-      page: 1,
-      pageSize: this._pageSize,
-      filters,
-      search: this.searchInput.value,
-      sortColumn: '', 
-      sortDirection: 'asc'
-    });
+    this.dataTableNgrxService.updateDatatableParameter({filters})
   }
   changePage(page: number): void {
     if (page >= 1) {
-      this.dataTableNgrxService.setCurrentPage(page);
+      this.dataTableNgrxService.updateDatatableParameter({page});
     }
   }
   toggleSort(column: keyof T): void {
-    this.store.dispatch(loadMovies({
-      page: 1,
-      pageSize: this._pageSize,
-      filters: this.columnFilters.value,
-      search: this.searchInput.value,
-      sortColumn: column as string,
-      sortDirection: 'asc' // toggle between asc/desc if you store the last direction
-    }));
-    this.dataTableNgrxService.updateSortColumn(column);
+    this.dataTableNgrxService.updateDatatableParameter({sortColumn:column as string, sortDirection : 'asc'});
   }
   trackByFn(
     index: number,

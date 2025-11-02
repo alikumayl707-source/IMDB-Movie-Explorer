@@ -1,27 +1,33 @@
 // datatable.effects.ts
 import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, map, mergeMap, of, switchMap } from 'rxjs';
-import { loadMovies, loadMoviesSuccess, loadMoviesFailure } from '../actions/datatable.actions';
-import { HttpService } from '../../utils/utilities/http.helpers';
+import { catchError, debounceTime, map, of, switchMap, withLatestFrom } from 'rxjs';
+import { loadData, loadDataFailure, loadDataSuccess, updateTableParameters } from '../actions/datatable.actions';
 import { OmdbService } from '../../service/omdb.service';
+import { select, Store } from '@ngrx/store';
+import { selectAllDataParams } from '../selectors/datatable.selectors';
 
 @Injectable()
 export class DataTableEffects {
   
- actions$ = inject(Actions);
+  actions$ = inject(Actions);
+  store$ = inject(Store)
   dataService = inject(OmdbService);
 
-  loadData$ = createEffect(() =>
+  loadDataOnParamChanges$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(loadMovies),
-      switchMap((params) =>
-        this.dataService.getMovies(params).pipe(
-          map((res) => loadMoviesSuccess({ data: res.data, total: res.total })),
-          catchError((error) => of(loadMoviesFailure({ error })))
+    ofType(updateTableParameters),
+     debounceTime(800),
+     withLatestFrom(this.store$.pipe(select(selectAllDataParams))),
+      switchMap(([action, params]) =>
+      {
+       return this.dataService.getMovies(params).pipe(
+          map((res) => loadDataSuccess({ data: res.data, total: res.total })),
+          catchError((error) => of(loadDataFailure({ error })))
         )
+      }
       )
     )
-  ) 
+  )
 
 }

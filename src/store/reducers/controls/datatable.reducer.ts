@@ -1,13 +1,13 @@
 import { createReducer, on } from "@ngrx/store";
-import {  loadMovies,  loadMoviesFailure,  loadMoviesSuccess,  setColumns,  setCurrentPage, setPageSize, setSearchTerm, updateColumnFilters, updateSort} from "../../actions/datatable.actions";
+import {  loadData, loadDataFailure, loadDataSuccess, setColumns, updateTableParameters} from "../../actions/datatable.actions";
 import { DataTableState } from "../../../utils/model/datatable.state";
 
 export const initialDataTableState : DataTableState<any> = {
     data:[],
     searchTerm:'',
     columns:[],
-    columnFilters:{},
-    sortColumn:'name',
+    filters:{},
+    sortColumn:'Title',
     sortDirection:'asc',
     currentPage:1,
     pageSize:10,
@@ -18,37 +18,33 @@ export const initialDataTableState : DataTableState<any> = {
 
 export const dataTableReducer = createReducer(
     initialDataTableState,
-
-
-    on(loadMovies, (state) => ({ ...state, loading: true, error: null })),
-
-    on(loadMoviesSuccess, (state, { data, total }) => ({
+    on(loadData, (state) => ({ ...state, loading: true, error: null })),
+    on(loadDataSuccess, (state, { data, total }) => ({
       ...state,
       data,
       total,
       loading: false
     })),
-  
-    on(loadMoviesFailure, (state, { error }) => ({
+    on(loadDataFailure, (state, { error }) => ({
       ...state,
       loading: false,
       error
     })),
-    on(setSearchTerm,(state,{searchTerm}) => ({...state, searchTerm})),
-    on(updateColumnFilters,(state,{columnFilters})=> ({...state, columnFilters})),
-    on(updateSort, (state, { column, direction }) => {
-        return {
-            ...state,
-            sortColumn: column,
-            sortDirection: direction
-        };
-    }),
+    on(updateTableParameters,(state,action)=>(
+      {
+      ...state,
+      currentPage:action.page ?? state.currentPage,
+      pageSize:action.pageSize ?? state.pageSize,
+      searchTerm:action.search ?? state.searchTerm,
+      filters:action.filters ?? state.filters,
+      sortColumn : action.sortColumn ?? state.sortColumn,
+      sortDirection : action.sortDirection ?? state.sortDirection
+    })
+  ),
     on(setColumns, (state, { columns }) => ({
         ...state,
         columns
       })),
       
-    on(setCurrentPage,(state,{currentPage})=> ({...state, currentPage})),   
-    on(setPageSize,(state,{pageSize})=> ({...state, pageSize}))
 );  
 

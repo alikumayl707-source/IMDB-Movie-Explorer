@@ -8,10 +8,12 @@ import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideEffects } from '@ngrx/effects';
 import { DataTableEffects } from '../store/effects/datatable.effects';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { provideServerRouting } from '@angular/ssr';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
+    provideServerRouting([]),                  
     provideRouter(routes),
     provideStore({datatable:dataTableReducer}),
     provideEffects([DataTableEffects]),

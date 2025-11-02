@@ -25,10 +25,10 @@ export class ImdbMoviesComponent<MovieDetail> implements OnInit {
   ];
   ngOnInit(): void {
     this.imdbService.getLoadingState().subscribe((state)=>this.isLoadingState=state)
-    this.datatable.uploadData({
+    this.datatable.updateDatatableParameter({
         page: 1,
         pageSize: 10,
-        filters: {Type:'',Year:'',imdbID:'',Title:''},
+        filters: {},
         search: 'guardians',
         sortColumn: '',
         sortDirection: 'asc',

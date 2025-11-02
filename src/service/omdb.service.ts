@@ -17,7 +17,7 @@ export class OmdbService<T> {
         page: number;
         pageSize?: number;
         search?: string;
-        filters?: { Type: string, Year: string, Title: string, imdbID: string };
+        filters?: { Type?: string, Year?: string, Title?: string, imdbID?: string };
         sortColumn?: string;
         sortDirection?: 'asc' | 'desc';
     }): Observable<{ data: Array<T>; total: number }> => {
@@ -32,7 +32,7 @@ export class OmdbService<T> {
                 .set('sortColumn', params.sortColumn)
                 .set('sortDirection', params.sortDirection || 'asc');
         }
-        
+        console.log(params)
         if (params.filters?.Type) {
             httpParams = httpParams.set(`type`, params.filters?.Type);
         }
