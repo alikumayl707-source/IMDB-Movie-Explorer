@@ -43,9 +43,9 @@ import { Router } from '@angular/router';
 export class AppDataTableComponent<T> implements OnInit, OnDestroy {
 
 
-  
+
   //Encapsulate Definition of the columns array
-  private _columns: Array<{ key: keyof T; label: string; sortable?: boolean }> =[];
+  private _columns: Array<{ key: keyof T; label: string; sortable?: boolean }> = [];
 
 
   //Encapsulate the columnVisibilty that contains key of property and it's visibility state
@@ -103,7 +103,7 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
     //This will return the encapsulated _columns array that was come from the parent component
     return this._columns;
   }
-  
+
 
   //Declaring the objects of an observables
   combinedData$: Observable<any> = new Observable<any>();
@@ -123,8 +123,8 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
   constructor(
     private dataTableNgrxService: DataTableNgrxService<T>,
     private store: Store<DataTableState<T>>,
-    private router : Router
-  ) {}
+    private router: Router
+  ) { }
   ngOnInit(): void {
 
     // Initializing observables with the ngrx selectors through fascade pattern
@@ -153,20 +153,26 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
     // through dispatching the ngrx action by the latest emission via some delay
     this.searchInput.valueChanges
       .pipe(debounceTime(800), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe((value:string) => {
-       this.dataTableNgrxService.updateDatatableParameter({search:value})
+      .subscribe((value: string) => {
+        this.dataTableNgrxService.updateDatatableParameter({ search: value })
       })
   }
   getFormControl(index: number): FormControl {
     //Creating form controls inside columnfilters form array till the lenght of the columns which passed by parent component
     return this.columnFilters?.controls[index] as FormControl;
   }
-  viewDetail(id:string){
+  viewDetail(id: string) {
     this.router.navigate([`movies/${id}`]);
   }
   toggleVisibility(columnKey: keyof T) {
     //this will behave like a toggle where the property which have bit true. this will make it false
     this._columnVisibility[columnKey] = !this._columnVisibility[columnKey];
+    const allHidden = Object.values(this._columnVisibility).every((visibility) => !visibility)
+    if (allHidden) {
+      for (const key in this._columnVisibility) {
+        this._columnVisibility[key as keyof T] = true;
+      }
+    }
   }
   initializeColumnFilters() {
     //Initialize formArray object with the form controls by the columns and its definition
@@ -196,15 +202,15 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
       {} as Record<string, string>
     );
     //this will update the ngrx action with that key value pair object
-    this.dataTableNgrxService.updateDatatableParameter({filters})
+    this.dataTableNgrxService.updateDatatableParameter({ filters })
   }
   changePage(page: number): void {
     if (page >= 1) {
-      this.dataTableNgrxService.updateDatatableParameter({page});
+      this.dataTableNgrxService.updateDatatableParameter({ page });
     }
   }
   toggleSort(column: keyof T): void {
-    this.dataTableNgrxService.updateDatatableParameter({sortColumn:column as string, sortDirection : 'asc'});
+    this.dataTableNgrxService.updateDatatableParameter({ sortColumn: column as string, sortDirection: 'asc' });
   }
   trackByFn(
     index: number,
@@ -232,7 +238,7 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy {
     const imgElement = event.target as HTMLImageElement;
     imgElement.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMwAAADACAMAAAB/Pny7AAAAY1BMVEXw8fP6+/2Ai5H19vjh5uro6epwfYLp6/FueYKdpKp1fIJtfoDz8/Ocpaju7u/w7/J4hIl9ho7t8OvR1Nf19fuxub93gYnc4eKUnKPAx8uHk5akqayyurvLztG5wMWToaOJkprRroSxAAADL0lEQVR4nO3dbXeaMACG4SwBNJ3kZSrQ6mr//69sYnUFASeHuT6xz91vhbZcTQhgPafixwMlvvoA/mXEoEYMasSgRgxqxKBGDGrEoPY9MAq4qRglgBvTEPPVEYMaMagRgxoxqBGDGjGoEYMaMagRgxoxqBGDGjGoEYMaMagRgxoxqBGDGjGoEYMaMagRgxoxqBGDGjGoEYPanTE2n5VVv0AwRpi1LJZzkutJv7y7joyRXs9KSguDyQo9ZfdeVj9lU/a/L+annrVgKCxMuZl2+N1WYJjVtMPvZIn5Yowxw59PFDOsSRMj8jof+HyKmFVdVstC170N6WGssK6QUlZN77jTwxi1jRYpl88PgNm8HC3SleHONHGMaGO6JYhRO+cjpthfbkkPE9blwsWBkb3lLD1MWJrDI1xY0Na9DSliwh3A79f1wFUzRUw475UaelRIESM+luT+/Rk4xlqTrW5+wQUcI8T+cPvhQWOsWOwLV2Zq5PnlMmSMFWbrQ7oePZGM6OCBMcLsvQwfvqzHvssma2+CxVhrxVYe71uk19nwy64qa8ImfIywZn+yxLHJB2eaefFVS4OKCaf83slTXjptL68r1m4W0rmw6Y8GFBPn2FK2qhrbvd5Yq7I3//EocAaAYsK4VL6N8dXhcue6Oe0RZhouJgzL5vRo3Mo1+edMC+NSN5/DVi4UMOZ16S8x4VTPV+ZsEbVu7eF0rkAxq8Xnud/WxHuBD0uYY2Vnl0rHsYHDxHuYbW9Y5Pl6E1eBOMf0BdftAhQPc7yHGcFETRyAuuztEVdog4UptArX/SvFi4rKDgPTMGqw/tgUMGNz7DzTcqXeBnfxYaZhYcrnsTl2OuJqlw1b4nmD9TfNcHdyjXI85Gp0U7VrsDCzcv6BMJIYYr4ZJn96IIz5+8p8Pfc25cfd+f1ma/lUzAnpLVphbPLFnOyNLxf+J8y03ftfPukb8D2aqBGDGjGoEYMaMagRgxoxqBGDGjGoEYMaMagRgxoxqBGDGjGoEYMaMagRgxoxqBGDGjGoEYMaMagRgxoxqBGD2lTMQ/3j9iQjBjViUCMGNWJQIwY1YlAjBjViUHsH7KVv4VCSSZUAAAAASUVORK5CYII=';
   }
-  
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

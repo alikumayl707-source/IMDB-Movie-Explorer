@@ -32,7 +32,6 @@ export class OmdbService<T> {
                 .set('sortColumn', params.sortColumn)
                 .set('sortDirection', params.sortDirection || 'asc');
         }
-        console.log(params)
         if (params.filters?.Type) {
             httpParams = httpParams.set(`type`, params.filters?.Type);
         }
